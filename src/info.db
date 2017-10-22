@@ -1,0 +1,6 @@
+#0
+database: !groups.db
+google_token: !my_google_token
+bot_token: !my_bot_token
+allowed_groups: -1001122427067 -1001050982793 -1001144796734
+message_max_char: !150
