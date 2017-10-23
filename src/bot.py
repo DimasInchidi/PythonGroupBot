@@ -80,7 +80,7 @@ def new(bot, update):
 def group(bot, update):
     """Returns a list of groups based on the provided language"""
     # Sorry PEP8
-    if update.message or update.message.reply_to_message and str(update.message.chat.id) in info.show()["allowed_groups"]:
+    if str(update.message.chat.id) in info.show()["allowed_groups"]:
         text = update.message["text"]
         text = text.split()
         if len(text) >= 2:

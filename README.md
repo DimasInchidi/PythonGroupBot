@@ -4,4 +4,3 @@ TODO:
 - [x] Auto-lang detection.
 - [ ] Meta questions detector.
 - [ ] Resend messages (then delete the old ones) with code that aren't formatted in Markdown. (Fucking annoys me)
-
