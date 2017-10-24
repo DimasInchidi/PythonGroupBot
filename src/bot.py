@@ -1,24 +1,32 @@
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 import logging
 import requests
 import generated_dict
 import dizdb
-
-# Josh, please don't roast me for my code :p.
-# I wanted to just finish it anyways (but i had to do something else :/).
-# Because I currently have my own wrapper but using python-telegram-bot anyways.
-# I think it's fun to not use other people's modules and actually write your own module.
-# so yeah, i could have written this in minutes.
-# anyways, whatever. https://core.telegram.org/bots/api to check out the docs.
+import html
 
 info = dizdb.load("info.db")
 
 db = dizdb.load(info.show()["database"])
+textsdb = dizdb.load(info.show()["translations"])
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
+
+def translate(msg, target):
+    url = "https://translation.googleapis.com/language/translate/v2"
+    result = requests.get(url, params={
+        "target": target,
+        "q": msg,
+        "key": info.show()["google_token"]
+    }).json()
+    lang = result["data"]["translations"][0]["translatedText"]
+    r_lang = html.unescape(lang)
+    return(r_lang)
 
 def detect(msg):
     """Do an HTTP GET to detect a string's language.
@@ -33,10 +41,22 @@ def detect(msg):
     lang = result["data"]["detections"][0][0]["language"]
     return(generated_dict.codes[lang])
 
+def button(bot, update):
+    query = update.callback_query
+    ID = query["id"]
+    text = query["message"]["text"]
+    lang = text.split()[5][:-1]
+    translated_ = textsdb.get(lang)
+
+    bot.answerCallbackQuery(ID,
+                            text=translated_,
+                            show_alert=True)
+
 def get_admin_ids(bot, chat_id):
     return [admin.user.id for admin in bot.getChatAdministrators(chat_id)]
 
 def echo(bot, update):
+    DETECT_META = None
     database = db.show()
     if update.message and str(update.message.chat.id) in info.show()["allowed_groups"]:
         message = update.message
@@ -45,20 +65,30 @@ def echo(bot, update):
         detected_lang = detect(text).split()
         for lang, username in database.items():
             if detected_lang[0] == lang:
+                DETECT_META = False
                 if len(username) >= 2:
                     txt = "I've detected that you speak {}. You should join {}".format(lang, " or ".join(username))
                 else:
                     txt = "I've detected that you speak {}. You should join {}".format(lang, username[0])
+                keyboard = [[InlineKeyboardButton("Read in {}".format(lang), callback_data="1")]]
+                reply_markup = InlineKeyboardMarkup(keyboard)
                 bot.sendMessage(
                     chat_id=update.message.chat.id,
                     text=txt,
-                    reply_to_message_id=int(id_)
+                    reply_to_message_id=int(id_),
+                    reply_markup=reply_markup
                     )
-                if len(text) > int(info.show()["message_max_char"]):
+                if len(text) > int(info.show()["message_max_char"]) and update.message.chat.id not in get_admin_ids(bot, update.message.chat.id):
                     update.message.bot.delete_message(
                         chat_id=update.message.chat.id,
                         message_id=id_
                         )
+            else:
+                DETECT_META = True
+
+        if DETECT_META is True:
+            if "anyone" in text and not "how" in text:
+                update.message.reply_text("Meta test.")
 
 def new(bot, update):
     """Add groups to a language key"""
@@ -80,7 +110,7 @@ def new(bot, update):
 def group(bot, update):
     """Returns a list of groups based on the provided language"""
     # Sorry PEP8
-    if str(update.message.chat.id) in info.show()["allowed_groups"]:
+    if update.message or update.message.reply_to_message and str(update.message.chat.id) in info.show()["allowed_groups"]:
         text = update.message["text"]
         text = text.split()
         if len(text) >= 2:
@@ -110,7 +140,6 @@ def groups(bot, update):
 """.format(r_file.read())
             update.message.reply_text(text, parse_mode="HTML", disable_web_page_preview=True)
 
-
 def main():
     """main function?"""
     updater = Updater(info.show()["bot_token"])
@@ -121,6 +150,7 @@ def main():
     dp.add_handler(CommandHandler("group", group))
     dp.add_handler(CommandHandler("groups", groups))
     dp.add_handler(MessageHandler(Filters.text, echo))
+    dp.add_handler(CallbackQueryHandler(button))
     dp.add_error_handler(_error)
 
     updater.start_polling()
