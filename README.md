@@ -6,7 +6,7 @@ TODO/Changelog:
 - [x] `new()` is now able to make new keys.
 - [x] NEW FUNC: `ignore()`. Add new texts to ignore to `ignore.json`
 - [x] NEW FUNC: `ignorelist()`. Get a list of the stuff that get ignored.
-- [x] Switch to `TinyDB` (it's meh.)
+- [x] Switched to `TinyDB` (it's meh.)
 - [x] Button to translate the "I've detected..." message to the detected language.
 - [x] A function that translates a text. (not used yet)
 - [ ] Meta questions detector.
