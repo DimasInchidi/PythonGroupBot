@@ -1,7 +1,0 @@
-#0
-database: !groups.db
-google_token: !nice_try_josh
-bot_token: !nice_try_josh
-allowed_groups: -1001122427067 -1001050982793 -1001144796734
-message_max_char: !150
-translations: !texts.db

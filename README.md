@@ -1,7 +1,12 @@
 It's a Telegram bot for the @python group maintained by the admins.
 
-TODO:
+TODO/Changelog:
 - [x] Auto-lang detection.
+- [x] Ignore special texts that are supposed to be in English.
+- [x] `new()` is not able to make new keys.
+- [x] NEW FUNC: `ignore()`. Add new texts to ignore to `ignore.json`
+- [x] NEW FUNC: `ignorelist()`. Get a list of the stuff that get ignored.
+- [x] Switch to `TinyDB` (it's meh.)
 - [x] Button to translate the "I've detected..." message to the detected language.
 - [x] A function that translates a text. (not used yet)
 - [ ] Meta questions detector.
