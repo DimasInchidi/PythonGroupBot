@@ -1,0 +1,8 @@
+certifi
+chardet
+future
+idna
+python-telegram-bot
+requests
+urllib3
+tinydb

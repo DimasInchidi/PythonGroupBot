@@ -11,3 +11,7 @@ TODO/Changelog:
 - [x] A function that translates a text. (not used yet)
 - [ ] Meta questions detector.
 - [ ] Resend messages (then delete the old ones) with code that aren't formatted in Markdown. (Fucking annoys me)
+
+
+# RUNNING TEST:
+to run test, run `python -m unittest -v tests` from /src/

@@ -5,6 +5,7 @@ import requests
 from tinydb import TinyDB
 import html
 import re
+from .meta_detector import *
 
 info = TinyDB("info.json")
 db = TinyDB("groups.json")
@@ -27,7 +28,8 @@ def translate(msg, target):
     }).json()
     lang = result["data"]["translations"][0]["translatedText"]
     r_lang = html.unescape(lang)
-    return(r_lang)
+    return (r_lang)
+
 
 def detect(msg):
     """Do an HTTP GET to detect a string's language.
@@ -40,7 +42,8 @@ def detect(msg):
         "key": info.all()[0]["google_token"]
     }).json()
     lang = result["data"]["detections"][0][0]["language"]
-    return(langs.all()[0][lang])
+    return (langs.all()[0][lang])
+
 
 def button(bot, update):
     query = update.callback_query
@@ -53,8 +56,10 @@ def button(bot, update):
                             text=translated_,
                             show_alert=True)
 
+
 def get_admin_ids(bot, chat_id):
     return [admin.user.id for admin in bot.getChatAdministrators(chat_id)]
+
 
 def echo(bot, update):
     database = db.all()[0]
@@ -78,17 +83,26 @@ def echo(bot, update):
                     keyboard = [[InlineKeyboardButton("Read in {}".format(lang), callback_data="1")]]
                     reply_markup = InlineKeyboardMarkup(keyboard)
                     bot.sendMessage(chat_id=update.message.chat.id,
-                        text=txt,
-                        reply_to_message_id=int(id_),
-                        reply_markup=reply_markup)
-                    if len(text) > info.all()[0]["max_message_char"] and update.message.chat.id not in get_admin_ids(bot, update.message.chat.id):
+                                    text=txt,
+                                    reply_to_message_id=int(id_),
+                                    reply_markup=reply_markup)
+                    if len(text) > info.all()[0]["max_message_char"] and update.message.chat.id not in get_admin_ids(
+                            bot, update.message.chat.id):
                         update.message.bot.delete_message(
                             chat_id=update.message.chat.id,
                             message_id=id_)
+            if is_meta_question(text):
+                bot.sendMessage(
+                    chat_id=update.message.chat.id,
+                    text="this is meta question",
+                    reply_to_message_id=int(id_)
+                )
+
 
 def new(bot, update):
     """Add groups to a language key"""
-    if update.message.from_user.id in get_admin_ids(bot, update.message.chat.id) and update.message.chat.id in info.all()[0]["allowed_groups"]:
+    if update.message.from_user.id in get_admin_ids(bot, update.message.chat.id) and update.message.chat.id in \
+            info.all()[0]["allowed_groups"]:
         if update.message:
             # yo
             text = update.message["text"]
@@ -105,6 +119,7 @@ def new(bot, update):
                     db.insert({key1: _groups})
             else:
                 update.message.reply_text("You have to at least provide a language name and at least one group.")
+
 
 def group(bot, update):
     """Returns a list of groups based on the provided language"""
@@ -125,8 +140,10 @@ def group(bot, update):
         else:
             update.message.reply_text("You have to provide a language name.")
 
+
 def ignore(bot, update):
-    if update.message.from_user.id in get_admin_ids(bot, update.message.chat.id) and update.message.chat.id in info.all()[0]["allowed_groups"]:
+    if update.message.from_user.id in get_admin_ids(bot, update.message.chat.id) and update.message.chat.id in \
+            info.all()[0]["allowed_groups"]:
         msg = update.message.reply_to_message
         if msg is None:
             msg = update.message
@@ -153,14 +170,18 @@ def ignore(bot, update):
         else:
             update.message.reply_text("You have to at least add one thing.")
 
+
 def ignorelist(bot, update):
-    if update.message.from_user.id in get_admin_ids(bot, update.message.chat.id) and update.message.chat.id in info.all()[0]["allowed_groups"]:
+    if update.message.from_user.id in get_admin_ids(bot, update.message.chat.id) and update.message.chat.id in \
+            info.all()[0]["allowed_groups"]:
         _odataodata = ignoredb.all()[0]["to_ignore"]
         update.message.reply_text("<code>{}</code>".format(_odataodata), parse_mode="HTML")
 
+
 def _error(bot, update, error):
     """Log errors."""
-    logger.warn('Update "%s" caused error "%s"' % (update, error))
+    logger.warning('Update "%s" caused error "%s"' % (update, error))
+
 
 def groups(bot, update):
     """Returns the content of the database file"""
@@ -173,6 +194,7 @@ def groups(bot, update):
 {}</code>
 """.format(db.all()[0])
             update.message.reply_text(text, parse_mode="HTML", disable_web_page_preview=True)
+
 
 def main():
     """main function?"""
